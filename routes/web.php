@@ -2,6 +2,11 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ParcelleController;
+use App\Http\Controllers\CultureController;
+use App\Http\Controllers\RecolteController;
+use App\Http\Controllers\DiagnosticController;
+use App\Http\Controllers\RotationController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -16,5 +21,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::resource('parcelles', ParcelleController::class);
+Route::resource('cultures', CultureController::class);
+Route::resource('recoltes', RecolteController::class);
+Route::resource('diagnostics', DiagnosticController::class);
+Route::resource('rotations', RotationController::class);
 
 require __DIR__.'/auth.php';

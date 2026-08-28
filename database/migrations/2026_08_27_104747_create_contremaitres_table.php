@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('contremaitres', function (Blueprint $table) {
-            $table->foreignID('id')->primary()->constrained('utilisateurs')->ondelete('cascade');
+            $table->foreignID('id')->primary()->constrained('users')->ondelete('cascade');
             $table->string('telephone');
             $table->timestamps();
         });

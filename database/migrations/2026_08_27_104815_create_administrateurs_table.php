@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('administrateurs', function (Blueprint $table) {
-            $table->foreignId('id')->primary()->constrained('utilisateurs')->onDelete('cascade');
+            $table->foreignId('id')->primary()->constrained('users')->onDelete('cascade');
             $table->string('niveau_acces');
             $table->timestamps();
         });
