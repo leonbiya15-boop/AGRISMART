@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Administrateur extends Model
 {
     protected $table = 'administrateurs';
-    protected $fillable = ['niveau_acces'];
+    protected $fillable = ['id', 'niveau_acces'];
 
     public function utilisateur()
     {

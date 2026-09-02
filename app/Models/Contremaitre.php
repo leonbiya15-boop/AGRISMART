@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Contremaitre extends Model
 {
     protected $table = 'contremaitres';
-    protected $fillable = ['telephone'];
+    protected $fillable = ['id','telephone'];
 
     public function utilisateur()
     {

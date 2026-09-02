@@ -7,6 +7,7 @@ use App\Http\Controllers\CultureController;
 use App\Http\Controllers\RecolteController;
 use App\Http\Controllers\DiagnosticController;
 use App\Http\Controllers\RotationController;
+use App\Http\Controllers\UserController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -27,5 +28,12 @@ Route::resource('cultures', CultureController::class);
 Route::resource('recoltes', RecolteController::class);
 Route::resource('diagnostics', DiagnosticController::class);
 Route::resource('rotations', RotationController::class);
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('admin.dashboard');
+
+    Route::resource('users', UserController::class);
+});
 
 require __DIR__.'/auth.php';
