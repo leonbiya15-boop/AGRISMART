@@ -9,6 +9,11 @@ class Rotation extends Model
     protected $table = 'rotations';
     protected $fillable = ['date_proposition', 'status'];
 
+    protected function casts(): array
+    {
+        return ['date_proposition' => 'date'];
+    }
+
     public function parcelles()
     {
         return $this->belongsToMany(Parcelle::class, 'parcelle_rotation');

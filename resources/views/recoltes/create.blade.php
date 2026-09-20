@@ -7,6 +7,10 @@
     <form action="{{ route('recoltes.store') }}" method="POST">
         @csrf
 
+                <label>Nom de la récolte</label>
+        <input type="text" name="nom" value="{{ old('nom') }}" required>
+
+
         <label>Date de récolte</label>
         <input type="date" name="date_recolte" value="{{ old('date_recolte') }}" required>
 
@@ -19,7 +23,7 @@
         <label>Contremaître</label>
         <select name="contremaitre_id" required>
             @foreach($contremaitres as $c)
-                <option value="{{ $c->id }}">{{ $c->utilisateur->nom ?? 'Contremaître #'.$c->id }}</option>
+                <option value="{{ $c->id }}">{{ $c->utilisateur->name ?? 'Contremaître #'.$c->id }}</option>
             @endforeach
         </select>
 

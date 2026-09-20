@@ -56,9 +56,36 @@ class CultureController extends Controller
         return redirect()->route('cultures.index')->with('success', 'Culture mise à jour');
     }
 
-    public function destroy(Culture $culture)
-    {
+   public function destroy(Culture $culture)
+{
+    $user = request()->user();
+
+    // L'administrateur peut supprimer n'importe quelle culture
+    if ($user->administrateur) {
         $culture->delete();
-        return redirect()->route('cultures.index')->with('success', 'Culture supprimée');
+
+        return redirect()
+            ->route('cultures.index')
+            ->with('success', 'Culture supprimée avec succès.');
     }
+
+    // Récupérer le contremaître connecté
+    $contremaitre = $user->contremaitre;
+
+    if (!$contremaitre) {
+        abort(403, 'Accès non autorisé.');
+    }
+
+    // Vérifier que la culture appartient à une parcelle
+    // appartenant au contremaître connecté
+    if (!$culture->parcelle || $culture->parcelle->contremaitre_id !== $contremaitre->id) {
+        abort(403, 'Vous ne pouvez pas supprimer cette culture.');
+    }
+
+    $culture->delete();
+
+    return redirect()
+        ->route('cultures.index')
+        ->with('success', 'Culture supprimée avec succès.');
+}
 }

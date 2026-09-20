@@ -7,7 +7,7 @@
     <p><strong>Superficie :</strong> {{ $parcelle->superficie }} ha</p>
     <p><strong>Latitude :</strong> {{ $parcelle->latitude }}</p>
     <p><strong>Longitude :</strong> {{ $parcelle->longitude }}</p>
-    <p><strong>Contremaître :</strong> {{ $parcelle->contremaitre->utilisateur->nom ?? '-' }}</p>
+    <p><strong>Contremaître :</strong> {{ $parcelle->contremaitre->utilisateur->name ?? '-' }}</p>
 
     <h3>Cultures</h3>
     <ul>

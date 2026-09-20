@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Diagnostic;
 use App\Models\Parcelle;
+use App\Services\IAService;
 use Illuminate\Http\Request;
+use App\Models\Alerte;
 
 class DiagnosticController extends Controller
 {
@@ -20,21 +22,40 @@ class DiagnosticController extends Controller
         return view('diagnostics.create', compact('parcelles'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, IAService $ia)
     {
         $validated = $request->validate([
-            'maladie_detectee' => 'required|boolean',
-            'nom_maladie' => 'nullable|string',
-            'date_analyse' => 'required|date',
-            'niveau_confiance' => 'required|numeric',
+            'photo' => 'required|image|max:5120',
             'parcelles' => 'required|array',
             'parcelles.*' => 'exists:parcelles,id',
         ]);
 
-        $diagnostic = Diagnostic::create($validated);
+        $cheminPhoto = $request->file('photo')->store('diagnostics', 'public');
+
+        $resultat = $ia->analyserPhotoMaladie($cheminPhoto);
+
+        $diagnostic = Diagnostic::create([
+            'maladie_detectee' => $resultat['maladie_detectee'],
+            'nom_maladie' => $resultat['nom_maladie'],
+            'niveau_confiance' => $resultat['niveau_confiance'],
+            'date_analyse' => now(),
+            'photo' => $cheminPhoto,
+        ]);
+
         $diagnostic->parcelles()->sync($validated['parcelles']);
 
-        return redirect()->route('diagnostics.index')->with('success', 'Diagnostic enregistré avec succès');
+        if ($diagnostic->maladie_detectee) {
+            foreach ($diagnostic->parcelles as $parcelle) {
+                Alerte::create([
+                    'diagnostic_id' => $diagnostic->id,
+                    'parcelle_id' => $parcelle->id,
+                    'message' => 'Maladie détectée : '.$diagnostic->nom_maladie.' sur la parcelle '.$parcelle->nom,
+                    'statut' => 'nouvelle',
+                ]);
+            }
+        }
+
+        return redirect()->route('diagnostics.index')->with('success', 'Photo analysée par l\'IA avec succès');
     }
 
     public function show(Diagnostic $diagnostic)
@@ -63,6 +84,18 @@ class DiagnosticController extends Controller
 
         $diagnostic->update($validated);
         $diagnostic->parcelles()->sync($validated['parcelles']);
+
+        if ($diagnostic->maladie_detectee) {
+            foreach ($diagnostic->parcelles as $parcelle) {
+                Alerte::firstOrCreate([
+                    'diagnostic_id' => $diagnostic->id,
+                    'parcelle_id' => $parcelle->id,
+                ], [
+                    'message' => 'Maladie détectée : '.$diagnostic->nom_maladie.' sur la parcelle '.$parcelle->nom,
+                    'statut' => 'nouvelle',
+                ]);
+            }
+        }
 
         return redirect()->route('diagnostics.index')->with('success', 'Diagnostic mis à jour');
     }

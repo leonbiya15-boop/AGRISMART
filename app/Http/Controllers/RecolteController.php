@@ -23,6 +23,7 @@ class RecolteController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'nom' => 'required|string|max:255',
             'date_recolte' => 'required|date',
             'quantite' => 'required|numeric',
             'unite' => 'required|string',
@@ -48,6 +49,7 @@ class RecolteController extends Controller
     public function update(Request $request, Recolte $recolte)
     {
         $validated = $request->validate([
+            'nom' => 'required|string|max:255',
             'date_recolte' => 'required|date',
             'quantite' => 'required|numeric',
             'unite' => 'required|string',
@@ -60,7 +62,33 @@ class RecolteController extends Controller
 
     public function destroy(Recolte $recolte)
     {
+        $user = request()->user();
+
+        // L'administrateur peut supprimer n'importe quelle récolte
+        if ($user->administrateur) {
+            $recolte->delete();
+
+            return redirect()
+                ->route('recoltes.index')
+                ->with('success', 'Récolte supprimée avec succès.');
+        }
+
+        // Récupérer le contremaître connecté
+        $contremaitre = $user->contremaitre;
+
+        if (!$contremaitre) {
+            abort(403, 'Accès non autorisé.');
+        }
+
+        // Le contremaître ne peut supprimer que ses propres récoltes
+        if ($recolte->contremaitre_id !== $contremaitre->id) {
+            abort(403, 'Vous ne pouvez pas supprimer cette récolte.');
+        }
+
         $recolte->delete();
-        return redirect()->route('recoltes.index')->with('success', 'Récolte supprimée');
+
+        return redirect()
+            ->route('recoltes.index')
+            ->with('success', 'Récolte supprimée avec succès.');
     }
 }

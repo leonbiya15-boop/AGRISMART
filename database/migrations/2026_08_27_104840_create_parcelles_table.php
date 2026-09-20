@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('nom');
             $table->float('superficie');
-            $table->float('latitude');
-            $table->float('longetitude');
+            $table->decimal('latitude', 10, 7);
+            $table->decimal('longitude', 10, 7);
             $table->foreignId('contremaitre_id')->constrained('contremaitres')->onDelete('cascade');
             $table->timestamps();
         });

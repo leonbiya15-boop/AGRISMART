@@ -10,13 +10,13 @@ class ParcelleController extends Controller
 {
     public function index()
     {
-        $parcelles = Parcelle::with('cultures')->get();
+        $parcelles = Parcelle::with(['cultures', 'contremaitre.utilisateur'])->latest()->get();
         return view('parcelles.index', compact('parcelles'));
     }
 
     public function create()
 {
-    $contremaitres = \App\Models\Contremaitre::all();
+    $contremaitres = Contremaitre::all();
     return view('parcelles.create', compact('contremaitres'));
 }
 
@@ -42,7 +42,8 @@ class ParcelleController extends Controller
 
     public function edit(Parcelle $parcelle)
     {
-        return view('parcelles.edit', compact('parcelle'));
+        $contremaitres = Contremaitre::with('utilisateur')->get();
+        return view('parcelles.edit', compact('parcelle', 'contremaitres'));
     }
 
     public function update(Request $request, Parcelle $parcelle)
@@ -52,15 +53,42 @@ class ParcelleController extends Controller
             'superficie' => 'required|numeric',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
+            'contremaitre_id' => 'required|exists:contremaitres,id',
         ]);
 
         $parcelle->update($validated);
         return redirect()->route('parcelles.index')->with('success', 'Parcelle mise à jour');
     }
 
-    public function destroy(Parcelle $parcelle)
-    {
+   public function destroy(Parcelle $parcelle)
+{
+    $user = request()->user();
+
+    // L'administrateur peut supprimer n'importe quelle parcelle
+    if ($user->administrateur) {
         $parcelle->delete();
-        return redirect()->route('parcelles.index')->with('success', 'Parcelle supprimée');
+
+        return redirect()
+            ->route('parcelles.index')
+            ->with('success', 'Parcelle supprimée avec succès.');
     }
+
+    // Récupérer le contremaître connecté
+    $contremaitre = $user->contremaitre;
+
+    if (!$contremaitre) {
+        abort(403, 'Accès non autorisé.');
+    }
+
+    // Le contremaître ne peut supprimer que ses propres parcelles
+    if ($parcelle->contremaitre_id !== $contremaitre->id) {
+        abort(403, 'Vous ne pouvez pas supprimer cette parcelle.');
+    }
+
+    $parcelle->delete();
+
+    return redirect()
+        ->route('parcelles.index')
+        ->with('success', 'Parcelle supprimée avec succès.');
+}
 }

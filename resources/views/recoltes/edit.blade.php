@@ -8,6 +8,9 @@
         @csrf
         @method('PUT')
 
+                <label>Nom de la récolte</label>
+        <input type="text" name="nom" value="{{ old('nom', $recolte->nom) }}" required>
+
         <label>Date de récolte</label>
         <input type="date" name="date_recolte" value="{{ old('date_recolte', $recolte->date_recolte) }}" required>
 
@@ -20,7 +23,7 @@
         <label>Contremaître</label>
         <select name="contremaitre_id" required>
             @foreach($contremaitres as $c)
-                <option value="{{ $c->id }}" {{ $recolte->contremaitre_id == $c->id ? 'selected' : '' }}>{{ $c->utilisateur->nom ?? 'Contremaître #'.$c->id }}</option>
+                <option value="{{ $c->id }}" {{ $recolte->contremaitre_id == $c->id ? 'selected' : '' }}>{{ $c->utilisateur->name ?? 'Contremaître #'.$c->id }}</option>
             @endforeach
         </select>
 

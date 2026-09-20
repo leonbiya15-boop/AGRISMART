@@ -4,6 +4,10 @@
 <div class="container">
     <h1>Diagnostic du {{ $diagnostic->date_analyse }}</h1>
 
+    @if($diagnostic->photo)
+    <img src="{{ asset('storage/' . $diagnostic->photo) }}" alt="Photo analysée" style="max-width: 400px; border-radius: 8px;">
+@endif
+
     <p><strong>Maladie détectée :</strong> {{ $diagnostic->maladie_detectee ? 'Oui' : 'Non' }}</p>
     <p><strong>Nom maladie :</strong> {{ $diagnostic->nom_maladie ?? '-' }}</p>
     <p><strong>Niveau de confiance :</strong> {{ $diagnostic->niveau_confiance }}%</p>

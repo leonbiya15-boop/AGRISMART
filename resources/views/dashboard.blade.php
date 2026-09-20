@@ -1,17 +1,6 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{ __("You're logged in!") }}
-                </div>
-            </div>
-        </div>
-    </div>
-</x-app-layout>
+@extends('layouts.app')
+@section('content')
+<section class="page-title"><div><p class="eyebrow">Vue d'ensemble</p><h1>Bonjour, {{ auth()->user()->name }}</h1><p>Suivez l’état de votre exploitation en temps réel.</p></div><a class="btn btn-primary" href="{{ route('parcelles.create') }}">+ Ajouter une parcelle</a></section>
+<section class="stats-grid"><article class="stat-card"><span>Parcelles</span><strong>{{ $parcelles }}</strong><small>{{ number_format($superficie, 2, ',', ' ') }} ha au total</small></article><article class="stat-card"><span>Récoltes {{ now()->year }}</span><strong>{{ number_format($recoltes, 1, ',', ' ') }}</strong><small>quantité enregistrée</small></article><article class="stat-card"><span>Alertes à traiter</span><strong>{{ $alertes }}</strong><small>maladies ou stock faible</small></article></section>
+<section class="dashboard-grid"><article class="panel"><div class="panel-head"><h2>Diagnostics récents</h2><a href="{{ route('diagnostics.index') }}">Tout voir</a></div>@forelse($diagnosticsRecents as $diagnostic)<div class="list-row"><div><strong>{{ $diagnostic->nom_maladie ?: 'Aucune maladie détectée' }}</strong><small>{{ $diagnostic->parcelles->pluck('nom')->join(', ') ?: 'Parcelle non renseignée' }} · {{ $diagnostic->date_analyse->format('d/m/Y') }}</small></div><span class="badge {{ $diagnostic->maladie_detectee ? 'danger' : 'success' }}">{{ $diagnostic->maladie_detectee ? 'Alerte' : 'Sain' }}</span></div>@empty <p class="empty">Aucun diagnostic enregistré.</p>@endforelse</article><article class="panel"><div class="panel-head"><h2>Stocks à surveiller</h2><a href="{{ route('intrants.index') }}">Gérer le stock</a></div>@forelse($stocksFaibles as $intrant)<div class="list-row"><div><strong>{{ $intrant->nom }}</strong><small>Seuil : {{ $intrant->seuil_alerte }} {{ $intrant->unite }}</small></div><span class="badge warning">{{ $intrant->quantite_stock }} {{ $intrant->unite }}</span></div>@empty <p class="empty">Tous les niveaux de stock sont satisfaisants.</p>@endforelse</article><article class="panel"><div class="panel-head"><h2>Rotations en attente</h2><a href="{{ route('rotations.index') }}">Planifier</a></div>@forelse($rotationsEnAttente as $rotation)<div class="list-row"><div><strong>{{ $rotation->parcelles->pluck('nom')->join(', ') }}</strong><small>Proposée le {{ $rotation->date_proposition->format('d/m/Y') }}</small></div><span class="badge neutral">En attente</span></div>@empty <p class="empty">Aucune rotation en attente.</p>@endforelse</article></section>
+@endsection

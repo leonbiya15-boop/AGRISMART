@@ -12,7 +12,8 @@
 
     <table class="table">
         <thead>
-            <tr>
+                       <tr>
+                <th>Nom</th>
                 <th>Date</th>
                 <th>Quantité</th>
                 <th>Unité</th>
@@ -23,18 +24,29 @@
         <tbody>
             @foreach($recoltes as $recolte)
             <tr>
+                <td>{{ $recolte->nom }}</td>
                 <td>{{ $recolte->date_recolte }}</td>
                 <td>{{ $recolte->quantite }}</td>
                 <td>{{ $recolte->unite }}</td>
-                <td>{{ $recolte->contremaitre->utilisateur->nom ?? '-' }}</td>
+                <td>{{ $recolte->contremaitre->utilisateur->name ?? '-' }}</td>
                 <td>
                     <a href="{{ route('recoltes.show', $recolte) }}">Voir</a>
                     <a href="{{ route('recoltes.edit', $recolte) }}">Modifier</a>
-                    <form action="{{ route('recoltes.destroy', $recolte) }}" method="POST" style="display:inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" onclick="return confirm('Supprimer cette récolte ?')">Supprimer</button>
-                    </form>
+                  @if(
+    auth()->user()->administrateur ||
+    (
+        auth()->user()->contremaitre &&
+        $recolte->contremaitre_id === auth()->user()->contremaitre->id
+    )
+)
+    <form action="{{ route('recoltes.destroy', $recolte) }}" method="POST" style="display:inline">
+        @csrf
+        @method('DELETE')
+        <button type="submit" onclick="return confirm('Supprimer cette récolte ?')">
+            Supprimer
+        </button>
+    </form>
+@endif
                 </td>
             </tr>
             @endforeach

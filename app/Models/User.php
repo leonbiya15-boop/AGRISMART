@@ -46,12 +46,12 @@ class User extends Authenticatable
         ];
     }
     public function contremaitre()
-{
-    return $this->hasOne(Contremaitre::class, 'id');
-}
+    {
+        return $this->hasOne(Contremaitre::class, 'id');
+    }
 
-public function administrateur()
-{
-    return $this->hasOne(Administrateur::class, 'id');
-}
+    public function administrateur()
+    {
+        return $this->hasOne(Administrateur::class, 'id');
+    }
 }

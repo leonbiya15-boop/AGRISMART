@@ -22,7 +22,7 @@
         <label>Contremaître</label>
         <select name="contremaitre_id" required>
             @foreach($contremaitres as $c)
-                <option value="{{ $c->id }}">{{ $c->utilisateur->nom ?? 'Contremaître #'.$c->id }}</option>
+                <option value="{{ $c->id }}">{{ $c->utilisateur->name ?? 'Contremaître #'.$c->id }}</option>
             @endforeach
         </select>
 

@@ -28,11 +28,20 @@
                 <td>
                     <a href="{{ route('cultures.show', $culture) }}">Voir</a>
                     <a href="{{ route('cultures.edit', $culture) }}">Modifier</a>
-                    <form action="{{ route('cultures.destroy', $culture) }}" method="POST" style="display:inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" onclick="return confirm('Supprimer cette culture ?')">Supprimer</button>
-                    </form>
+                   @if(auth()->user()->administrateur || 
+    (auth()->user()->contremaitre &&
+    $culture->parcelle &&
+    $culture->parcelle->contremaitre_id === auth()->user()->contremaitre->id))
+
+    <form action="{{ route('cultures.destroy', $culture) }}" method="POST" style="display:inline">
+        @csrf
+        @method('DELETE')
+        <button type="submit" onclick="return confirm('Supprimer cette culture ?')">
+            Supprimer
+        </button>
+    </form>
+
+@endif
                 </td>
             </tr>
             @endforeach

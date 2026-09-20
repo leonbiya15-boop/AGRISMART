@@ -28,11 +28,24 @@
                 <td>
                     <a href="{{ route('rotations.show', $rotation) }}">Voir</a>
                     <a href="{{ route('rotations.edit', $rotation) }}">Modifier</a>
-                    <form action="{{ route('rotations.destroy', $rotation) }}" method="POST" style="display:inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" onclick="return confirm('Supprimer cette rotation ?')">Supprimer</button>
-                    </form>
+                   @if(
+    auth()->user()->administrateur ||
+    (
+        auth()->user()->contremaitre &&
+        $rotation->parcelles->count() > 0 &&
+        $rotation->parcelles->every(function ($parcelle) {
+            return $parcelle->contremaitre_id === auth()->user()->contremaitre->id;
+        })
+    )
+)
+    <form action="{{ route('rotations.destroy', $rotation) }}" method="POST" style="display:inline">
+        @csrf
+        @method('DELETE')
+        <button type="submit" onclick="return confirm('Supprimer cette rotation ?')">
+            Supprimer
+        </button>
+    </form>
+@endif
                 </td>
             </tr>
             @endforeach

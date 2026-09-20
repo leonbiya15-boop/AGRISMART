@@ -2,25 +2,14 @@
 
 @section('content')
 <div class="container">
-    <h1>Créer un diagnostic</h1>
+    <h1>Analyser une photo (détection IA)</h1>
 
-    <form action="{{ route('diagnostics.store') }}" method="POST">
+    <form action="{{ route('diagnostics.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
 
-        <label>Maladie détectée ?</label>
-        <select name="maladie_detectee" required>
-            <option value="1">Oui</option>
-            <option value="0">Non</option>
-        </select>
-
-        <label>Nom de la maladie</label>
-        <input type="text" name="nom_maladie" value="{{ old('nom_maladie') }}">
-
-        <label>Date d'analyse</label>
-        <input type="date" name="date_analyse" value="{{ old('date_analyse') }}" required>
-
-        <label>Niveau de confiance (%)</label>
-        <input type="number" step="0.01" name="niveau_confiance" value="{{ old('niveau_confiance') }}" required>
+        <label>Photo de la plante</label>
+        <input type="file" name="photo" accept="image/*" required>
+        @error('photo') <span class="field-error">{{ $message }}</span> @enderror
 
         <label>Parcelles concernées</label>
         @foreach($parcelles as $p)
@@ -29,8 +18,9 @@
                 {{ $p->nom }}
             </label>
         @endforeach
+        @error('parcelles') <span class="field-error">{{ $message }}</span> @enderror
 
-        <button type="submit">Enregistrer</button>
+        <button type="submit">Analyser avec l'IA</button>
     </form>
 </div>
 @endsection

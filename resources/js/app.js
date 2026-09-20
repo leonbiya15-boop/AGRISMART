@@ -1,7 +1,2 @@
 import './bootstrap';
-
-import Alpine from 'alpinejs';
-
-window.Alpine = Alpine;
-
-Alpine.start();
+document.addEventListener('DOMContentLoaded', () => { document.querySelector('[data-menu-toggle]')?.addEventListener('click', () => document.querySelector('[data-menu]')?.classList.toggle('open')); const role = document.querySelector('[data-role-select]'); const updateRoleFields = () => { const isManager = role?.value === 'administrateur'; document.querySelector('[data-phone-field]')?.toggleAttribute('hidden', isManager); document.querySelector('[data-access-field]')?.toggleAttribute('hidden', !isManager); }; role?.addEventListener('change', updateRoleFields); updateRoleFields(); });
