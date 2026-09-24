@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class IAService
 {
@@ -16,15 +17,39 @@ class IAService
     public function analyserPhotoMaladie(string $cheminPhoto): array
     {
         try {
-            $imageData = base64_encode(file_get_contents(storage_path('app/public/' . $cheminPhoto)));
+            $cheminComplet = storage_path('app/public/' . $cheminPhoto);
+
+            // Vérifier que l'image existe
+            if (!file_exists($cheminComplet)) {
+                Log::error('Image introuvable pour le diagnostic Gemini', [
+                    'chemin' => $cheminComplet
+                ]);
+
+                return [
+                    'maladie_detectee' => false,
+                    'nom_maladie' => null,
+                    'niveau_confiance' => 0
+                ];
+            }
+
+            $imageData = base64_encode(file_get_contents($cheminComplet));
 
             $response = Http::timeout(30)->post(
-                'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=' . $this->apiKey,
+                'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' . $this->apiKey,
                 [
                     'contents' => [[
                         'parts' => [
                             [
-                                'text' => "Tu es un expert en agronomie. Analyse cette photo de plante et détermine si une maladie est visible. Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, au format exact : {\"maladie_detectee\": true ou false, \"nom_maladie\": \"nom ou null\", \"niveau_confiance\": nombre entre 0 et 100}"
+                                'text' => 'Tu es un expert en agronomie. Analyse cette photo de plante et détermine si une maladie est visible.
+
+Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour.
+
+Format exact :
+{
+    "maladie_detectee": true ou false,
+    "nom_maladie": "nom ou null",
+    "niveau_confiance": nombre entre 0 et 100
+}'
                             ],
                             [
                                 'inline_data' => [
@@ -37,17 +62,58 @@ class IAService
                 ]
             );
 
+            // Vérifier la réponse de Gemini
             if (!$response->successful()) {
-                return ['maladie_detectee' => false, 'nom_maladie' => null, 'niveau_confiance' => 0];
+                Log::error('Erreur Gemini', [
+                    'status' => $response->status(),
+                    'body' => $response->body()
+                ]);
+
+                return [
+                    'maladie_detectee' => false,
+                    'nom_maladie' => null,
+                    'niveau_confiance' => 0
+                ];
             }
 
             $texte = $response->json('candidates.0.content.parts.0.text');
-            $texte = trim(str_replace(['```json', '```'], '', $texte ?? ''));
+
+            $texte = trim(
+                str_replace(
+                    ['```json', '```'],
+                    '',
+                    $texte ?? ''
+                )
+            );
+
             $resultat = json_decode($texte, true);
 
-            return $resultat ?? ['maladie_detectee' => false, 'nom_maladie' => null, 'niveau_confiance' => 0];
+            if (!is_array($resultat)) {
+                Log::error('Réponse Gemini invalide', [
+                    'reponse' => $texte
+                ]);
+
+                return [
+                    'maladie_detectee' => false,
+                    'nom_maladie' => null,
+                    'niveau_confiance' => 0
+                ];
+            }
+
+            return $resultat;
+
         } catch (\Exception $e) {
-            return ['maladie_detectee' => false, 'nom_maladie' => null, 'niveau_confiance' => 0];
+
+            Log::error('Exception lors de l’analyse Gemini', [
+                'message' => $e->getMessage(),
+                'fichier' => $cheminPhoto
+            ]);
+
+            return [
+                'maladie_detectee' => false,
+                'nom_maladie' => null,
+                'niveau_confiance' => 0
+            ];
         }
     }
 
@@ -55,27 +121,64 @@ class IAService
     {
         try {
             $response = Http::timeout(15)->post(
-                'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=' . $this->apiKey,
+                'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' . $this->apiKey,
                 [
                     'contents' => [[
                         'parts' => [[
-                            'text' => "Tu es un expert en agronomie. Voici l'historique des cultures d'une parcelle : {$historiqueCultures}. Propose UNE culture adaptée pour la prochaine rotation, en tenant compte de la rotation des cultures. Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, au format : {\"culture_proposee\": \"nom de la culture\", \"raison\": \"courte explication\"}"
+                            'text' => "Tu es un expert en agronomie. Voici l'historique des cultures d'une parcelle : {$historiqueCultures}. Propose UNE culture adaptée pour la prochaine rotation, en tenant compte de la rotation des cultures.
+
+Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour.
+
+Format :
+{
+    \"culture_proposee\": \"nom de la culture\",
+    \"raison\": \"courte explication\"
+}"
                         ]]
                     ]]
                 ]
             );
 
             if (!$response->successful()) {
-                return ['culture_proposee' => null, 'raison' => null];
+
+                Log::error('Erreur Gemini lors de la proposition de rotation', [
+                    'status' => $response->status(),
+                    'body' => $response->body()
+                ]);
+
+                return [
+                    'culture_proposee' => null,
+                    'raison' => null
+                ];
             }
 
             $texte = $response->json('candidates.0.content.parts.0.text');
-            $texte = trim(str_replace(['```json', '```'], '', $texte ?? ''));
+
+            $texte = trim(
+                str_replace(
+                    ['```json', '```'],
+                    '',
+                    $texte ?? ''
+                )
+            );
+
             $resultat = json_decode($texte, true);
 
-            return $resultat ?? ['culture_proposee' => null, 'raison' => null];
+            return $resultat ?? [
+                'culture_proposee' => null,
+                'raison' => null
+            ];
+
         } catch (\Exception $e) {
-            return ['culture_proposee' => null, 'raison' => null];
+
+            Log::error('Exception lors de la proposition de rotation Gemini', [
+                'message' => $e->getMessage()
+            ]);
+
+            return [
+                'culture_proposee' => null,
+                'raison' => null
+            ];
         }
     }
 }

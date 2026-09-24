@@ -18,12 +18,16 @@ class DiagnosticController extends Controller
 
     public function create()
     {
+        $this->authorize('create', Diagnostic::class);
+
         $parcelles = Parcelle::all();
         return view('diagnostics.create', compact('parcelles'));
     }
 
     public function store(Request $request, IAService $ia)
     {
+        $this->authorize('create', Diagnostic::class);
+
         $validated = $request->validate([
             'photo' => 'required|image|max:5120',
             'parcelles' => 'required|array',
@@ -66,6 +70,8 @@ class DiagnosticController extends Controller
 
     public function edit(Diagnostic $diagnostic)
     {
+        $this->authorize('update', $diagnostic);
+
         $parcelles = Parcelle::all();
         $diagnostic->load('parcelles');
         return view('diagnostics.edit', compact('diagnostic', 'parcelles'));
@@ -73,6 +79,8 @@ class DiagnosticController extends Controller
 
     public function update(Request $request, Diagnostic $diagnostic)
     {
+        $this->authorize('update', $diagnostic);
+
         $validated = $request->validate([
             'maladie_detectee' => 'required|boolean',
             'nom_maladie' => 'nullable|string',
@@ -102,7 +110,10 @@ class DiagnosticController extends Controller
 
     public function destroy(Diagnostic $diagnostic)
     {
+        $this->authorize('delete', $diagnostic);
+
         $diagnostic->delete();
+
         return redirect()->route('diagnostics.index')->with('success', 'Diagnostic supprimé');
     }
 }

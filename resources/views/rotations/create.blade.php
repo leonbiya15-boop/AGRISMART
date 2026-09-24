@@ -32,7 +32,7 @@
                 <input type="hidden" name="parcelle_id" value="{{ $parcelleSelectionnee->id }}">
                 <input type="hidden" name="culture_proposee" value="{{ $propositionIA['culture_proposee'] }}">
                 <input type="hidden" name="origine" value="ia">
-                <button type="submit">✅ Accepter cette proposition</button>
+                <button type="submit"> Accepter cette proposition</button>
             </form>
 
             <p>Cette proposition ne vous convient pas ?</p>

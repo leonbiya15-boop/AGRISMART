@@ -71,8 +71,17 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        if ($user->is(auth()->user())) return back()->with('error', 'Vous ne pouvez pas supprimer votre propre compte.');
+        if ($user->is(auth()->user())) {
+            return back()->with('error', 'Vous ne pouvez pas supprimer votre propre compte.');
+        }
+
+        // On supprime d'abord les enregistrements liés (contremaitre/administrateur)
+        // pour éviter l'erreur de contrainte de clé étrangère
+        Administrateur::whereKey($user->id)->delete();
+        Contremaitre::whereKey($user->id)->delete();
+
         $user->delete();
+
         return redirect()->route('users.index')->with('success', 'Utilisateur supprimé.');
     }
 

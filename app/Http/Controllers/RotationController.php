@@ -17,6 +17,8 @@ class RotationController extends Controller
 
     public function create(Request $request, IAService $ia)
     {
+        $this->authorize('create', Rotation::class);
+
         $parcelles = Parcelle::all();
         $propositionIA = null;
         $parcelleSelectionnee = null;
@@ -37,6 +39,8 @@ class RotationController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', Rotation::class);
+
         $validated = $request->validate([
             'parcelle_id' => 'required|exists:parcelles,id',
             'culture_proposee' => 'required|string|max:255',
@@ -63,6 +67,8 @@ class RotationController extends Controller
 
     public function edit(Rotation $rotation)
     {
+        $this->authorize('update', $rotation);
+
         $parcelles = Parcelle::all();
         $rotation->load('parcelles');
         return view('rotations.edit', compact('rotation', 'parcelles'));
@@ -70,6 +76,8 @@ class RotationController extends Controller
 
     public function update(Request $request, Rotation $rotation)
     {
+        $this->authorize('update', $rotation);
+
         $validated = $request->validate([
             'date_proposition' => 'required|date',
             'status' => 'required|string',
@@ -85,30 +93,7 @@ class RotationController extends Controller
 
     public function destroy(Rotation $rotation)
     {
-       $user = request()->user();
-
-        if ($user->administrateur) {
-            $rotation->parcelles()->detach();
-            $rotation->delete();
-
-            return redirect()
-                ->route('rotations.index')
-                ->with('success', 'Rotation supprimée avec succès.');
-        }
-
-        $contremaitre = $user->contremaitre;
-
-        if (!$contremaitre) {
-            abort(403, 'Accès non autorisé.');
-        }
-
-        $rotation->load('parcelles');
-
-        foreach ($rotation->parcelles as $parcelle) {
-            if ($parcelle->contremaitre_id !== $contremaitre->id) {
-                abort(403, 'Vous ne pouvez pas supprimer cette rotation.');
-            }
-        }
+        $this->authorize('delete', $rotation);
 
         $rotation->parcelles()->detach();
         $rotation->delete();

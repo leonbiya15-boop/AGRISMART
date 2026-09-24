@@ -45,6 +45,7 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
     public function contremaitre()
     {
         return $this->hasOne(Contremaitre::class, 'id');
@@ -53,5 +54,21 @@ class User extends Authenticatable
     public function administrateur()
     {
         return $this->hasOne(Administrateur::class, 'id');
+    }
+
+    /**
+     * Indique si cet utilisateur possède le rôle administrateur.
+     */
+    public function estAdministrateur(): bool
+    {
+        return $this->administrateur()->exists();
+    }
+
+    /**
+     * Indique si cet utilisateur possède le rôle contremaître.
+     */
+    public function estContremaitre(): bool
+    {
+        return $this->contremaitre()->exists();
     }
 }

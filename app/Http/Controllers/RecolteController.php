@@ -16,12 +16,16 @@ class RecolteController extends Controller
 
     public function create()
     {
+        $this->authorize('create', Recolte::class);
+
         $contremaitres = Contremaitre::all();
         return view('recoltes.create', compact('contremaitres'));
     }
 
     public function store(Request $request)
     {
+        $this->authorize('create', Recolte::class);
+
         $validated = $request->validate([
             'nom' => 'required|string|max:255',
             'date_recolte' => 'required|date',
@@ -42,12 +46,16 @@ class RecolteController extends Controller
 
     public function edit(Recolte $recolte)
     {
+        $this->authorize('update', $recolte);
+
         $contremaitres = Contremaitre::all();
         return view('recoltes.edit', compact('recolte', 'contremaitres'));
     }
 
     public function update(Request $request, Recolte $recolte)
     {
+        $this->authorize('update', $recolte);
+
         $validated = $request->validate([
             'nom' => 'required|string|max:255',
             'date_recolte' => 'required|date',
@@ -62,28 +70,7 @@ class RecolteController extends Controller
 
     public function destroy(Recolte $recolte)
     {
-        $user = request()->user();
-
-        // L'administrateur peut supprimer n'importe quelle récolte
-        if ($user->administrateur) {
-            $recolte->delete();
-
-            return redirect()
-                ->route('recoltes.index')
-                ->with('success', 'Récolte supprimée avec succès.');
-        }
-
-        // Récupérer le contremaître connecté
-        $contremaitre = $user->contremaitre;
-
-        if (!$contremaitre) {
-            abort(403, 'Accès non autorisé.');
-        }
-
-        // Le contremaître ne peut supprimer que ses propres récoltes
-        if ($recolte->contremaitre_id !== $contremaitre->id) {
-            abort(403, 'Vous ne pouvez pas supprimer cette récolte.');
-        }
+        $this->authorize('delete', $recolte);
 
         $recolte->delete();
 
